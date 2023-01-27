@@ -2,8 +2,12 @@ import Head from 'next/head'
 import Image from 'next/image'
 import Banner from '../components/Banner'
 import Header from '../components/Header'
+import MovieDetailModal from '../components/MovieDetailModal'
 import requests from '../utils/request'
 import {Movie} from '../typings'
+import { useState } from 'react'
+import { useRecoilState, useRecoilValue } from 'recoil'
+import { modalState, movieState } from '../atoms/modalAtom'
 import Row from '../components/Row'
 
 interface Props {
@@ -27,13 +31,14 @@ const Home = (props : Props) => {
         romanceMovies,
         documentaries
         } = props;
+  const [showModal , setShowModal] = useRecoilState(modalState);
   
   return (
     <div className="relative h-screen bg-gradient-to-b from-gray-900/10 
     to-[#010511] lg:h-[140vh]">
       <Head>
-        <title>Create Next App</title>
-        <link rel="icon" href="/favicon.ico" />
+        <title>Netflix - Home page</title>
+        <link rel="icon" href="/netflix.png" />
       </Head>
     <Header />
     <main className="relative pl-4 pb-24 lg:space-y-24 lg:pl-16">
@@ -51,7 +56,7 @@ const Home = (props : Props) => {
           <Row title="Documentaries" movies={documentaries} />
       </section>
     </main>
-    
+    {showModal && <MovieDetailModal />}
     </div>
   )
 }
