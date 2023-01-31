@@ -13,7 +13,7 @@ function MovieDetailModal() {
     const [movie , setMovie] = useRecoilState(movieState);
     const [trailer, setTrailer] = useState("");
     const [genres, setGenres] = useState<Genre[]>([]);
-    const [muted, setMuted] = useState(true);
+    const [muted, setMuted] = useState(false);
 
     useEffect(() => {
         if(!movie) return;
@@ -29,7 +29,7 @@ function MovieDetailModal() {
             
             if(data?.videos) {
               const index = data.videos.results.findIndex((el : Element)  => el.type === "Trailer");
-              setTrailer(data.videos?.results[index].key);
+              setTrailer(data.videos?.results[index]?.key);
             }
 
             if(data?.genres) {
