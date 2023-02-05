@@ -7,14 +7,16 @@ function useSubscription(user : User | null) {
     const [subscriptions , setSubscription] = useState<Subscription | null>(null);
 
     useEffect(() => {
-        onCurrentUserSubscriptionUpdate(payments, (snapshot) => {
-            let activeSubscription = snapshot.subscriptions.filter(subscription => subscription.status === 'active' || 
-            subscription.status === 'trialing');
-            
-            if(activeSubscription.length > 0) {
-                setSubscription(activeSubscription[0]);
-            }
-        })
+        if(user) {
+            onCurrentUserSubscriptionUpdate(payments, (snapshot) => {
+                let activeSubscription = snapshot.subscriptions.filter(subscription => subscription.status === 'active' || 
+                subscription.status === 'trialing');
+                
+                if(activeSubscription.length > 0) {
+                    setSubscription(activeSubscription[0]);
+                }
+            })
+        }
     },[user])
  
     return subscriptions;

@@ -14,6 +14,7 @@ import Plans from '../components/Plans'
 import payments from '../lib/stripe'
 import { getProducts, Product } from '@stripe/firestore-stripe-payments'
 import useSubscription from '../hooks/useSubscription'
+import useList from '../hooks/useList'
 
 interface Props {
   netflixOriginals: Movie[];
@@ -41,6 +42,8 @@ const Home = (props : Props) => {
   const [showModal , setShowModal] = useRecoilState(modalState);
   const { loading, user } = useAuth();
   const subscription = useSubscription(user);      
+  const movie = useRecoilValue(movieState);
+  const list = useList(user?.uid);
 
   if(loading || subscription === null) return null;
 
@@ -61,8 +64,7 @@ const Home = (props : Props) => {
           <Row title="Top Rated" movies={topRated} />
           <Row title="Action Thrillers" movies={actionMovies} />
           {/* My List */}
-          {/* {list.length > 0 && <Row title="My List" movies={list} />} */}
-
+          {list.length > 0 && <Row title="My List" movies={list} />}
           <Row title="Comedies" movies={comedyMovies} />
           <Row title="Scary Movies" movies={horrorMovies} />
           <Row title="Romance Movies" movies={romanceMovies} />

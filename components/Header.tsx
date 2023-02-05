@@ -2,6 +2,7 @@ import {MagnifyingGlassIcon } from '@heroicons/react/24/outline'
 import {BellIcon } from '@heroicons/react/24/solid'
 import Link from 'next/link';
 import { useState , useEffect } from 'react'
+import BasicMenu from './BasicMenu';
 
 function Header()  {
     const [isScrolled , setIsScrolled] = useState(false); 
@@ -40,6 +41,10 @@ function Header()  {
                 <li className="HeaderLink">New &amp; Popular</li>
                 <li className="HeaderLink"></li>
             </ul>
+
+            <div className="md:hidden flex">
+                <BasicMenu  />
+            </div>
 
         </div>
 

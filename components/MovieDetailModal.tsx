@@ -1,12 +1,17 @@
 import React, { useEffect, useState } from 'react'
 import { XMarkIcon } from '@heroicons/react/24/solid'
-import { PlusIcon, HandThumbUpIcon } from '@heroicons/react/24/outline'
+import { PlusIcon, HandThumbUpIcon, CheckIcon } from '@heroicons/react/24/outline'
 import MuiModal from '@mui/material/Modal'
 import ReactPlayer from 'react-player'
 import {FaPlay, FaVolumeOff, FaVolumeUp} from 'react-icons/fa';
 import { useRecoilValue , useRecoilState } from 'recoil'
 import { modalState, movieState } from '../atoms/modalAtom'
-import { Element, Genre } from '../typings';
+import { Element, Genre, Movie } from '../typings';
+import useList from '../hooks/useList'
+import { deleteDoc, doc, setDoc,onSnapshot,DocumentData,collection } from 'firebase/firestore'
+import { database } from '../firebase'
+import useAuth from '../hooks/useAuth'
+import toast, { Toaster } from 'react-hot-toast'
 
 function MovieDetailModal() {
     const [showModal, setShowModal] = useRecoilState(modalState);
@@ -14,6 +19,9 @@ function MovieDetailModal() {
     const [trailer, setTrailer] = useState("");
     const [genres, setGenres] = useState<Genre[]>([]);
     const [muted, setMuted] = useState(false);
+    const [addedToList, setAddedToList] = useState(false);
+    const { user } = useAuth();
+    const [movies, setMovies] = useState<DocumentData[] | Movie[]>([])
 
     useEffect(() => {
         if(!movie) return;
@@ -41,9 +49,47 @@ function MovieDetailModal() {
 
     },[movie]) 
 
+    useEffect(() => {
+      if (user) {
+        return onSnapshot(
+          collection(database, 'customers', user.uid, 'myList'),
+          (snapshot) => setMovies(snapshot.docs)
+        )
+      }
+    }, [database, movie?.id])
+  
+    // Check if the movie is already in the user's list
+    useEffect(
+      () =>
+        setAddedToList(
+          movies.findIndex((result) => result.data().id === movie?.id) !== -1
+        ),
+      [movies]
+    )
+
 
     const handleClose = () => {
         setShowModal(false);
+    }
+
+    const handleList = async () => {
+      if(addedToList) {
+        await deleteDoc(doc(database, "customers", user!.uid, "myList", movie?.id.toString()));
+
+        toast(`${movie?.title || movie?.original_name} has been removed from My List`,{
+          duration: 8000,
+          
+        });
+      } else {
+        await setDoc(doc(database, "customers", user!.uid, "myList", movie?.id.toString()!), {...movie});
+
+        toast(`${movie?.title || movie?.original_name} has been added to My List`,{
+          duration: 8000,
+          
+        });
+      }
+
+   
     }
 
   return (
@@ -53,64 +99,12 @@ function MovieDetailModal() {
     overflow-y-scroll rounded-md scrollbar-hide"
     >
         <React.Fragment>
+          <Toaster position="bottom-center" />
             <button onClick={handleClose} className="modalButton absolute right-5 top-5 !z-40 
             h-9 w-9 border-none bg-[#181818] hover:bg-[#181818]">
                 <XMarkIcon className="h-6 w-6" />
             </button> 
 
-            {/* <div className="relative pt-[56.25%]">
-              <ReactPlayer
-              url={`https://www.youtube.com/watch?v=${trailer}`}
-              width="100%"
-              height="100%"
-              style={{ position: 'absolute', top: '0', left: '0' }}
-              playing
-              muted={muted}
-              />
-              <div className="absolute bottom-10 flex w-full items-center justify-between px-10">
-                <div className="flex space-x-2">
-                  <button className="flex items-center gap-x-2 rounded bg-white px-8 text-xl 
-                  font-bold text-black transition hover:bg-[#e6e6e6]">
-                    <FaPlay className="h-7 w-7 text-black" />
-                    Play
-                  </button>
-
-                  <button className="modalButton">
-                    <PlusIcon className="h-7 w-7" />
-                  </button>
-                  
-                  <button className="modalButton">
-                    <HandThumbUpIcon className="h-7 w-7" />
-                  </button>
-
-                
-                </div>
-                <button onClick={() => setMuted(!muted)}>
-                    {muted ? <FaVolumeOff className="h-6 w-6" /> : <FaVolumeUp className="h-6 w-6" />}
-                  </button>
-              </div>
-            </div>
-
-            <div className="flex space-x-16 rounded-b-md bg-[#181818] px-10 py-8">
-              <div className="space-y-6 text-lg">
-                <div className="flex items-center spac-x-2 text-sm">
-                  <p>
-                    {movie!.vote_average * 10}% Match    
-                  </p>
-                  
-                  <p className="font-light">
-                    {movie?.release_date || movie?.first_air_date}
-                  </p>
-
-                  <div className="flex h-4 items-center justify-center rounded border border-white/40 px-1.5 text-xs">
-                    HD
-                  </div>
-                </div>
-
-            
-                
-              </div>
-            </div> */}
         <div className="relative pt-[56.25%]">
           <ReactPlayer
             url={`https://www.youtube.com/watch?v=${trailer}`}
@@ -126,13 +120,13 @@ function MovieDetailModal() {
                 <FaPlay className="h-7 w-7 text-black" />
                 Play
               </button>
-              {/* <button className="modalButton" onClick={handleList}>
+              <button className="modalButton" onClick={handleList}>
                 {addedToList ? (
                   <CheckIcon className="h-7 w-7" />
                 ) : (
                   <PlusIcon className="h-7 w-7" />
                 )}
-              </button> */}
+              </button>
               <button className="modalButton">
                 <HandThumbUpIcon className="h-6 w-6" />
               </button>
