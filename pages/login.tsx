@@ -5,26 +5,36 @@ import Link from 'next/link';
 import { useForm, SubmitHandler  } from "react-hook-form";
 import useAuth from '../hooks/useAuth';
 import toast, { Toaster } from 'react-hot-toast';
+import Loader from '../components/Loader';
 
 interface Inputs {
   email: string;
   password: string;
 }
 
-const notify = () => toast.success('Sign up successfully !');
+const notifySuccess = () => toast.success('Sign up successfully !');
+const notifyFail = () => toast.error('Email is exist');
 
 function Login() {
   const { register, handleSubmit, formState: { errors } } = useForm<Inputs>();
   const [login , setLogin] = useState(false);
+  const [loading , setLoading] = useState(false);
+  const [loadingSignUp , setLoadingSignUp] = useState(false);
   const { signIn, signUp } = useAuth();
   const onSubmit: SubmitHandler<Inputs> = async (data) => {
+    
     if(login) {
-      signIn(data.email, data.password)
+      setLoading(true);
+      await signIn(data.email, data.password)
+      setLoading(false);
     } else {
+      setLoadingSignUp(true);
       let result = await signUp(data.email, data.password);
-
+      setLoadingSignUp(false);
       if(result) {
-        notify();
+        notifySuccess();
+      } else {
+        notifyFail();
       }
     }
   };
@@ -55,6 +65,7 @@ function Login() {
         <form className="relative mt-24 space-y-8 rounded bg-black/75 py-10 
         px-6 md:mt-0 md:max-w-md md:px-14" onSubmit={handleSubmit(onSubmit)}>
             <h1 className="text-4xl font-semibold">Sign In</h1>
+          
             <div className="space-y-4">
               <label className="inline-block w-full">
                 <input {...register("email", {required : true})}  className="w-full rounded bg-[#333] px-5 py-3.5 placeholder-[gray] outline-none 
@@ -67,14 +78,18 @@ function Login() {
               </label>
               {errors.password &&  <span style={{color : 'red'}}>Please enter your password</span>}
             </div>
-        <button type='submit' onClick={() => setLogin(true)} className="w-full rounded bg-[#e50914] py-3 font-semibold">Sign In</button>    
+        <button type='submit' disabled={loading} onClick={() => {
+          setLogin(true);
+        }} className="w-full rounded bg-[#e50914] py-3 font-semibold">
+          {loading ? <Loader color="dark:fill-gray-300"  /> : <>Sign in</>}
+          
+          </button>    
         
         <div className="">
           <span style={{marginRight: '10px', color:'gray'}}>New to Netflix?</span>
-          <button type='submit' className="text-white hover:underline" onClick={() => {
+          <button type='submit' className="text-white hover:underline" disabled={loadingSignUp} onClick={() => {
             setLogin(false);
-              
-          }}>Sign up now</button>
+          }}>{loadingSignUp ? <Loader color="dark:fill-gray-300"  /> : <>Sign up now</>}</button>
           <Toaster />
         </div>
         </form>
