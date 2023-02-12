@@ -4,22 +4,28 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useForm, SubmitHandler  } from "react-hook-form";
 import useAuth from '../hooks/useAuth';
+import toast, { Toaster } from 'react-hot-toast';
 
 interface Inputs {
   email: string;
   password: string;
 }
 
+const notify = () => toast.success('Sign up successfully !');
 
 function Login() {
   const { register, handleSubmit, formState: { errors } } = useForm<Inputs>();
   const [login , setLogin] = useState(false);
   const { signIn, signUp } = useAuth();
-  const onSubmit: SubmitHandler<Inputs> = data => {
+  const onSubmit: SubmitHandler<Inputs> = async (data) => {
     if(login) {
       signIn(data.email, data.password)
     } else {
-      console.log('Sign up')
+      let result = await signUp(data.email, data.password);
+
+      if(result) {
+        notify();
+      }
     }
   };
 
@@ -65,7 +71,11 @@ function Login() {
         
         <div className="">
           <span style={{marginRight: '10px', color:'gray'}}>New to Netflix?</span>
-          <button type='submit' className="text-white hover:underline" onClick={() => setLogin(false)}>Sign up now</button>
+          <button type='submit' className="text-white hover:underline" onClick={() => {
+            setLogin(false);
+              
+          }}>Sign up now</button>
+          <Toaster />
         </div>
         </form>
     </div>

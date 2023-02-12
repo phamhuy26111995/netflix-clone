@@ -10,6 +10,7 @@ import {
 import { useRouter } from 'next/router'
 import { createContext, useContext, useEffect, useMemo, useState } from 'react'
 import { auth } from '../firebase'
+import toast, { Toaster } from 'react-hot-toast';
 
 interface AuthProviderProps {
   children: React.ReactNode
@@ -17,7 +18,7 @@ interface AuthProviderProps {
 
 interface IAuth  {
   user : User | null;
-  signUp : (email : string , password : string) => Promise<void>;
+  signUp : (email : string , password : string) => Promise<boolean | undefined>;
   signIn : (email : string , password : string) => Promise<void>;
   logout : () => Promise<void>;
   error : string | null;
@@ -27,13 +28,14 @@ interface IAuth  {
 const AuthContext = createContext<IAuth>(
   {
     user: null,
-    signUp : async () => {},
+    signUp : async () => false,
     signIn : async () => {},
     logout : async () => {},
     error : null,
     loading : false
   }
 );
+
 
 
 export function AuthProvider(props : AuthProviderProps) {
@@ -63,14 +65,28 @@ export function AuthProvider(props : AuthProviderProps) {
     )
 
     const signUp = async (email : string , password : string) => {
-        await createUserWithEmailAndPassword(auth,email, password).then(
-            userCredential => {
-                setUser(userCredential.user);
-                router.push("/");
-            }
-        ).catch((err) => {
-          alert(err.message);
-        }).finally(() => setLoading(false))
+        // await createUserWithEmailAndPassword(auth,email, password).then(
+        //     userCredential => {
+        //         setUser(userCredential.user);
+        //         return true;
+        //     }
+        // ).catch((err) => {
+        //   alert(err.message);
+        //   return false;
+        // }).finally(() => setLoading(false))
+        let userCredential = undefined;
+        try {
+          userCredential = await createUserWithEmailAndPassword(auth,email, password);
+          if(userCredential) {
+            setUser(userCredential.user);
+            return true;
+          }
+        
+        } catch (err) {
+          return false;
+        } finally {
+          setLoading(false);
+        }
     }
 
     const signIn = async (email : string , password : string) => {

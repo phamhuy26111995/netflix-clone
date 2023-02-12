@@ -19,14 +19,24 @@ function Row(props : Props) {
         setIsMoved(true);
 
         if(rowRef.current) {
-            const { scrollLeft, clientWidth } = rowRef.current;
+            const { scrollLeft, clientWidth , scrollWidth } = rowRef.current;
+            const maxScroll = scrollWidth - clientWidth;
+            
 
             const scrollTo = 
                 direction === 'left' 
                 ? scrollLeft - clientWidth
                 : scrollLeft + clientWidth;
-            console.log(clientWidth , scrollLeft)
-            rowRef.current.scrollTo({left : scrollTo, behavior : 'smooth'})    
+
+            
+            if(scrollLeft === maxScroll) {
+                rowRef.current.scrollTo({left : 0 , behavior : 'smooth'});
+            } else if(scrollLeft === 0) {
+                rowRef.current.scrollTo({left : maxScroll, behavior : 'smooth'}) 
+            }    
+             else {
+                rowRef.current.scrollTo({left : scrollTo, behavior : 'smooth'})    
+            }
         }
 
 
